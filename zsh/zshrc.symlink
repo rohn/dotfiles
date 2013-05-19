@@ -46,12 +46,7 @@ COMPLETION_WAITING_DOTS="true"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 plugins=(git git-flow gradle osx sublime battery)
 
-# the infamous Paul Irish "server" function
-function server() {
-	local port="${1:-8000}"
-	python -m SimpleHTTPServer "$port"
-	open "http://localhost:${port}/"
-}
+
 
 source $ZSH/oh-my-zsh.sh
 
