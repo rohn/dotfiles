@@ -44,18 +44,68 @@ COMPLETION_WAITING_DOTS="true"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git git-flow gradle osx sublime battery)
+plugins=(git git-flow gradle grails jira osx sublime battery zsh-syntax-highlighting)
 
+# the infamous Paul Irish "server" function
+function server() {
+        local port="${1:-8000}"
+        python -m SimpleHTTPServer "$port"
+        open "http://localhost:${port}/"
+}
 
+## zsh/growl integration: any command that takes longer than 5 seconds
+## will trigger a growl notification when it completes.
+if growlnotify -h &>/dev/null; then
+    preexec() {
+        zsh_growl_cmd=$1
+        zsh_growl_time=`date +%s`
+    }
+
+    precmd() {
+        if (( $? == 0 )); then
+            zsh_growl_status=done
+        else
+            zsh_growl_status=fail
+        fi
+        if [[ "${zsh_growl_cmd}" != "" ]]; then
+            if (( `date +%s` - ${zsh_growl_time} > 5 )); then
+                growlnotify -m ${zsh_growl_cmd} ${zsh_growl_status}
+            fi
+        fi
+        zsh_growl_cmd=
+    }
+fi
+
+# the infamous Paul Irish z script
+. $HOME/EnvironmentConfiguration/z/z.sh
+
+# MySQL Start/Stop Aliases
+# will prompt you for sudo password
+alias mysqlstart='sudo launchctl load -w /Library/LaunchDaemons/com.mysql.mysqld.plist'
+
+# will prompt you for sudo password and then root mysql password (by default it's blank)
+alias mysqlstop='sudo launchctl unload -w /Library/LaunchDaemons/com.mysql.mysqld.plist'
+
+# forward requests to your localhost 3307 through the tunnel and out to port 3306 on test.testbloom.com
+alias pf3307test='ssh -L 3307:localhost:3306 test.testbloom.com'
 
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
 export GRADLE_HOME=/usr/local/gradle/gradle-1.6/bin
-export PATH=$GRADLE_HOME:$JAVA_HOME/bin:$PATH:$HOME/bin:/usr/local/share/npm/bin
+export PATH=$GRADLE_HOME:$JAVA_HOME/bin:$PATH:$HOME/bin:/usr/local/share/npm/bin:/usr/local/sbin
+export GRADLE_OPTS="-Xms2048m -Xmx2048m -XX:PermSize=2048m -XX:MaxPermSize=2048m"
 
 # Set GRAILS environment variable
-export GRAILS_OPTS="-Xms2048m -Xmx2048m -XX:PermSize=128m -XX:MaxPermSize=1024m -server"
+export GRAILS_OPTS="-Xms2048m -Xmx2048m -XX:PermSize=2048m -XX:MaxPermSize=2048m -server -Duser.timezone=UTC"
+
+#set for consolidated bloom
+export JAVA_OPTS='-Djava.awt.headless=true -Xms1G -Xmx1G -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC'
+
+#set to keep bloomhealth services from cluttering up the dock and alt-tab app switcher
+export JAVA_TOOL_OPTIONS='-Djava.awt.headless=true'
+
+export JIRA_URL="https://bloomhealthco.atlassian.net"
 
 #THIS MUST BE AT THE END OF THE FILE FOR GVM TO WORK!!!
 [[ -s "/Users/rblake/.gvm/bin/gvm-init.sh" ]] && source "/Users/rblake/.gvm/bin/gvm-init.sh"
